@@ -35,7 +35,7 @@ function local_loginas_extends_navigation(global_navigation $navigation) {
     if (!$settingsnav = $PAGE->__get('settingsnav')) {
         return;
     }
-   
+
     if (is_siteadmin($USER)) {
         $loginas = $settingsnav->add(get_string('loginas'));
 
@@ -43,17 +43,14 @@ function local_loginas_extends_navigation(global_navigation $navigation) {
         $url = new moodle_url('/admin/settings.php', array('section' => 'localsettingloginas'));
         $loginas->add(get_string('settings'), $url, $settingsnav::TYPE_SETTING);
 
-        // Users list 
-        if (!empty($CFG->loginas_loginasusers)) {
-            $userids = explode(',', $CFG->loginas_loginasusers);
-            $loginasusers = $DB->get_records_list('user', 'id', $userids, '', 'id,firstname,lastname');
-
-            $params = array('id' => $COURSE->id, 'sesskey' => sesskey());
-            foreach ($loginasusers as $userid => $lauser) {
-                $url = new moodle_url('/course/loginas.php', $params);
-                $url->param('user', $userid);
-                $loginas->add(fullname($lauser, true), $url, $settingsnav::TYPE_SETTING);
-            }
+        // List of users enrolled in course
+        $params = array('id' => $COURSE->id, 'sesskey' => sesskey());
+        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        $students = get_role_users(5 , $context);
+        foreach($students as $student) {
+            $url = new moodle_url('/course/loginas.php', $params);
+            $url->param('user', $student->id);
+            $loginas->add(fullname($student, true), $url, $settingsnav::TYPE_SETTING);
         }
     }
 }
